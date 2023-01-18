@@ -1,0 +1,221 @@
+.data
+3 // prost broj 1
+7 // prost broj 2
+2 // broj e (encrypt)
+12 // poruka
+// First part of public key
+// other part of public key
+.text
+/*
+Spisak registara:
+R0 - privremeni registar.
+R1 - pb1
+R2 - pb2
+R3 – First part of public key
+R4 - other part of public key
+R5 - broj e
+R6 - privremeni registar.
+R7 - privremeni registar.
+*/
+begin:
+	;;ucitaj REGISTRE
+	ld R1, R0
+	inc R0,R0
+	ld R2, R0
+
+//kljuc1 = pb1 * pb2
+mnozenje:
+	add R3, R1, R3
+	dec R2, R2
+	jmpnz mnozenje
+ld R2, R0 // ponovno ucitavanje pb2
+
+//kljuc2 = (pb1 - 1) * (pb2 - 1)
+dec R1, R1
+dec R2, R2
+mnozenje_dedva:
+	add R4, R1, R4
+	dec R2, R2
+	jmpnz mnozenje_dedva
+ld R2, R0
+// R0 == 1
+//biramo e = 2
+
+inc R0, R0
+// R0 = 2
+ld R5, R0
+inc R0, R0
+inc R0, R0
+// R0 == 4
+st R4, R0
+inc R0, R0
+// R0 == 5
+st R5, R0
+
+// e<phi
+while1:
+	sub R0, R5, R4
+	jmpns kraj_while
+	/// slobodni su R6, R7
+
+	// gcc (e,phi) ==  (R5, R4)  == (ax, bx)
+	mov R7, R5
+	again:
+		sub R6, R5, R4
+		jmpz endd
+		jmps exchg
+	l2:
+		mov R7, R5
+		divide:
+			sub R7, R7, R4
+			jmps ostatak
+			jmpz endd
+			jmp divide
+	exchg:
+		mov R0, R5
+		mov R5, R4
+		mov R4, R0
+		jmp again
+	ostatak:
+		add R5, R7, R4
+		jmp again
+	endd:
+	mov R7, R4
+	//ostatak whila
+	sub R6, R6, R6
+	inc R6,R6
+	sub R7, R7, R6
+	jmpz kraj_while
+	mov R7, R4
+	//ucitava opet phi
+	sub R0, R0, R0
+	inc R0, R0	
+	inc R0, R0
+	inc R0, R0
+	inc R0, R0
+	ld R4, R0
+	//namesta opet e
+	mov R5, R7
+	inc R5, R5
+	inc R6, R6
+	inc R6, R6
+	inc R6, R6
+	inc R6, R6
+	inc R6, R6
+	st R5, R6
+	jmp while1
+kraj_while:
+sub R6, R6, R6
+inc R6, R6
+inc R6, R6
+inc R6, R6
+inc R6, R6
+inc R6, R6
+inc R6, R6
+ld R5, R6
+
+//ucitaj ponovo phi
+sub R0, R0, R0
+inc R0, R0
+inc R0, R0
+inc R0, R0
+inc R0, R0
+ld R4, R0
+
+// pravimo d == R7
+//d = (1 + (k*phi))/e;
+sub R7, R7, R7
+inc R7, R7
+inc R7, R7
+// R6 == phi * (k =2)
+sub R6, R6, R6
+mnozenje2:
+	add R6, R4, R6
+	dec R7, R7
+	jmpnz mnozenje2
+
+inc R6, R6
+
+deljenje:
+	inc R7, R7
+	sub R6, R6, R5
+	jmpz daljelol
+	jmps greska
+	jmp deljenje
+daljelol:
+
+
+//msg
+sub R0, R0, R0
+inc R0, R0
+inc R0, R0
+inc R0, R0
+ld R0, R0 //ucitavanje sa 4 pozicije
+
+mov R6, R0
+mov R4, R0
+mov R7, R5
+//TODO PROVERI OSTATAK KODA
+
+// c = pow(msg,e); ///TODO  // e == R5, msg == R0 == R6 == R4
+pow1:
+	mnozenje3:
+		add R0, R6, R0
+		dec R4, R4
+		jmpnz mnozenje3
+	mod_phi:	
+		sub R0, R0, R3
+		jmps mod_phi_dalje_s
+		jmpz mod_phi_dalje
+		jmp mod_phi
+	mod_phi_dalje_s:
+		add R0, R3, R0
+	mod_phi_dalje:
+	mov R4, R6
+	dec R5, R5
+	jmpz daljelol2
+	jmp pow1
+daljelol2:
+
+mov R1, R0
+mov R5, R7
+mov R6, R0
+mov R4, R0
+
+//  double m = pow(c,d);; ///TODO  // d == R7, c == R0 == R6 == R4
+pow2:
+	mnozenje4:
+		add R0, R6, R0
+		dec R4, R4
+		jmpnz mnozenje4
+	mod_phi_part2:	
+		sub R0, R0, R3
+		jmps mod_phi_dalje_s_part2
+		jmpz mod_phi_dalje_part2
+		jmp mod_phi_part2
+	mod_phi_dalje_s_part2:
+		add R0, R3, R0
+	mod_phi_dalje_part2:
+	mov R4, R6
+	dec R7, R7
+	jmpnz pow2
+
+/*
+    c=fmod(c,n);
+    m=fmod(m,n);
+*/
+mov R2, R0
+end:
+jmp end
+greska:
+jmp greska
+/*
+  while (e < phi) {
+        // e must be co-prime to phi and
+        // smaller than phi.
+        if (gcd(e, phi) == 1)
+            break;
+        else
+            e++;
+    }
+*/

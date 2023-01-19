@@ -39,8 +39,8 @@ mnozenje_dedva:
 	jmpnz mnozenje_dedva
 ld R2, R0
 // R0 == 1
+//biramo e = 2
 
-//Ucitavamo vrednosti
 inc R0, R0
 // R0 = 2
 ld R5, R0
@@ -52,7 +52,6 @@ inc R0, R0
 // R0 == 5
 st R5, R0
 
-//Veliki while koji bira e tako da gcd(e,phi) = 1 tako sto povecava e
 // e<phi
 while1:
 	sub R0, R5, R4
@@ -106,8 +105,6 @@ while1:
 	st R5, R6
 	jmp while1
 kraj_while:
-//Vraca registre na ono sto bi trebalo
-//ucitava originalni e
 sub R6, R6, R6
 inc R6, R6
 inc R6, R6
@@ -158,9 +155,10 @@ ld R0, R0 //ucitavanje sa 4 pozicije
 mov R6, R0
 mov R4, R0
 mov R7, R5
-
-// c = pow(msg,e); ///TODO  // e == R5, msg == R0 == R6 == R4
-// neophodno je da uzimamo mod posle svake operacije jer je mod(a*b) == mod(a)*mod(b) inace normalno stepenovanje
+//TODO PROVERI OSTATAK KODA
+sub R0, R0, R0
+dec R5, R5
+// c = pow(msg,e); ///TODO  // e == R5, msg  == R6 == R4  0 = R0
 pow1:
 	mnozenje3:
 		add R0, R6, R0
@@ -174,17 +172,19 @@ pow1:
 	mod_phi_dalje_s:
 		add R0, R3, R0
 	mod_phi_dalje:
-	mov R4, R6
+	mov R4, R0
+	sub R0, R0, R0
 	dec R5, R5
 	jmpz daljelol2
 	jmp pow1
 daljelol2:
-
-mov R1, R0
+//u R0 dodajemo R6 koji je konstantno msg onda smanjujemo R4 sto je isto poruka onda prelazimo na modulator R0 posle posto radi pro
+// postavljamo na R4 novu vrednost nuliramo R0
+mov R1, R4
 mov R5, R7
-mov R6, R0
-mov R4, R0
-
+mov R6, R4
+sub R0, R0, R0
+dec R7, R7
 //  double m = pow(c,d);; ///TODO  // d == R7, c == R0 == R6 == R4
 pow2:
 	mnozenje4:
@@ -199,7 +199,8 @@ pow2:
 	mod_phi_dalje_s_part2:
 		add R0, R3, R0
 	mod_phi_dalje_part2:
-	mov R4, R6
+	mov R4, R0
+	sub R0, R0, R0
 	dec R7, R7
 	jmpnz pow2
 
@@ -207,20 +208,18 @@ pow2:
     c=fmod(c,n);
     m=fmod(m,n);
 */
-
-//desifrovana poruk u R2 a sifrovana u R1
-mov R2, R0
+mov R2, R4
 end:
 jmp end
 greska:
 jmp greska
 /*
-  while (e < phi) {
-        // e must be co-prime to phi and
-        // smaller than phi.
-        if (gcd(e, phi) == 1)
-            break;
-        else
-            e++;
-    }
+  while (e < phi) {
+        // e must be co-prime to phi and
+        // smaller than phi.
+        if (gcd(e, phi) == 1)
+            break;
+        else
+            e++;
+    }
 */

@@ -1,6 +1,6 @@
-# RSA Algoritam
+# RSA Algoritam implementiran u asembleru
 
-RSA Algoritam na procesoru sa lprs1.
+RSA Algoritam na asemblerskom jeziku za procesoru sa lprs predmeta.
 
 UART fali procesor lprs samo kopirati sa vezbi i staviti RSA.asm.txt u src->asm
 UART ne radi, treba se popraviti
